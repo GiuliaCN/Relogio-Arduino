@@ -2,9 +2,13 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include <dht.h> 
+#include <DHT.h> 
 
-dht DHT;
+#define DHTPIN 7
+#define DHTTYPE DHT22
+
+DHT dht(DHTPIN,DHTTYPE);
+
 
 // OLED Display Configuration
 #define SCREEN_WIDTH 128
@@ -101,9 +105,9 @@ void rotinaNormal(){
   // Escreve umidade no display
   display.setCursor(2,2);  
   display.print("Umidade: ");
-  display.print(DHT.humidity, 1);
+  display.print(dht.readHumidity(), 1);
   Serial.print("Umidade: ");
-  Serial.println(DHT.humidity, 1);
+  Serial.println(dht.readHumidity(), 1);
   
   DateTime now = rtc.now();
   doTime(now);  

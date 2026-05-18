@@ -82,7 +82,7 @@ https://portal.vidadesilicio.com.br/real-time-clock-rtc-ds3231/
 Wire.h
 Biblioteca utilizada para inicializar a comunicação I2C
 https://capsistema.com.br/index.php/2020/11/27/como-usar-i2c-no-arduino-comunicacao-entre-duas-placas-arduino/
-
+DHT sensor library de Adafruit para o DHT22 - https://docs.arduino.cc/libraries/dht-sensor-library/
 ### Referências
 Livro sobre programação do Arduino
 McRoberts, Michael; Arduino básico; [trad. Rafael Zanolli]. São Paulo: Novatec Editora, 2011.
