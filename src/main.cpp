@@ -123,60 +123,62 @@ void rotinaNormal(){
   
   if(now.second() != segundoAnterior) {
     segundoAnterior = now.second();
-    
-    // Atualizando a tela
-    display.clearDisplay(); // Limpa a tela anterior para não sobrepor texto
-    display.setTextSize(1);
-    display.setTextColor(SSD1306_WHITE);
-    
-    // Escreve umidade no display
-    float umidade = dht.readHumidity();
-    float temperatura = dht.readTemperature(); //aqui ja leu a temperatura
-    display.setCursor(2,48);  
-    display.print("Umid: ");
-    display.print(umidade, 1);
-    display.print(" %");
-    Serial.print("Umidade: ");
-    Serial.println(umidade, 1);
 
-    // Escreve temperatura no display
-    display.setCursor(2,36);  
-    display.print("Temp: ");
+    float umidade = dht.readHumidity();
+    float temperatura = dht.readTemperature();
+
+    display.clearDisplay();
+    display.setTextColor(SSD1306_WHITE);
+
+    // Borda
+    display.drawRect(0, 0, 128, 64, SSD1306_WHITE);
+
+    // Topo: dia da semana + data
+    display.setTextSize(1);
+    display.setCursor(4, 4);
+    display.print(daysOfTheWeek[now.dayOfTheWeek()]);
+    display.print(" ");
+
+    if(now.day() < 10) display.print('0');
+    display.print(now.day());
+    display.print('/');
+
+    if(now.month() < 10) display.print('0');
+    display.print(now.month());
+    display.print('/');
+
+    display.print(now.year());
+
+    // Ícone
+    display.drawBitmap(108, 3, alien_bmp, ALIEN_WIDTH, ALIEN_HEIGHT, SSD1306_WHITE);
+
+    // Hora grande
+    display.setTextSize(2);
+    display.setCursor(16, 25);
+
+    if(now.hour() < 10) display.print('0');
+    display.print(now.hour());
+    display.print(':');
+
+    if(now.minute() < 10) display.print('0');
+    display.print(now.minute());
+    display.print(':');
+
+    if(now.second() < 10) display.print('0');
+    display.print(now.second());
+
+    // Rodapé: temperatura e umidade
+    display.setTextSize(1);
+
+    display.setCursor(5, 53);
     display.print(temperatura, 1);
     display.print(" C");
-    Serial.print("Temperatura: ");
-    Serial.println(temperatura, 1);
-    
-    doTime(now);  
-    
-    // Escreve data no display 
-    display.setCursor(2,0); 
-    display.print("Data: ");
-    if(now.day() < 10) display.print('0');
-    display.print(now.day(), DEC);
-    display.print('/');
-    if(now.month() < 10) display.print('0'); 
-    display.print(now.month(), DEC); 
-    display.print('/');  
-    display.print(now.year(), DEC);
 
-    // Escreve dia da semana no display 
-    display.setCursor(2,12); 
-    display.print(daysOfTheWeek[now.dayOfTheWeek()]);
-    
-    // Escreve hora no display
-    display.setCursor(2,24);
-    display.print("Hora: ");
-    display.print(now.hour(), DEC);
-    display.print(':');
-    if(now.minute() < 10) display.print('0');
-    display.print(now.minute(), DEC);
-    display.print(':');
-    if(now.second() < 10) display.print('0');
-    display.print(now.second(), DEC);
-    
-    display.drawBitmap(100, 50, alien_bmp, ALIEN_WIDTH, ALIEN_HEIGHT, SSD1306_WHITE); //desenha o logo
-    display.display(); 
+    display.setCursor(82, 53);
+    display.print(umidade, 1);
+    display.print(" %");
+
+    display.display();
   }
 }
 
