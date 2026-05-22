@@ -20,6 +20,8 @@ Fica se comunicando com os componentes (RTC e DHT22) e atualizando a tela.
 
 Passa para o estado Configuracao se os dois botões forem pressionados juntos.
 
+![Display no Modo Normal](assets/visual-modo-normal.png)
+
 #### Estado Configuracao
 
 Permite configurar o horário do RTC utilizando os botões.
