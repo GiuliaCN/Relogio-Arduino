@@ -28,6 +28,20 @@ Inicia uma variável que verifica o timeout do usuário (tempo sem input do usu�
 
 Se o timeout chega a um valor arbitrário, retorno o estado do relógio para Normal.
 
+Campos configuráveis:
+````
+HORA -> MINUTO -> DIA -> MES -> ANO -> SALVAR
+````
+
+Circularidade dos campos configuráveis:
+````
+hora: 0..23
+minuto: 0..59
+dia: 1..31
+mes: 1..12
+ano: 2024..2035
+diaSemana: 0..6
+````
 
 ## Sobre a entrega do projeto
 Projeto Arduino

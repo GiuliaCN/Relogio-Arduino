@@ -50,6 +50,27 @@ char daysOfTheWeek[7][12] = {"Domingo", "Segunda", "Terca", "Quarta", "Quinta", 
 const int pinBUp = 3;
 const int pinBDown = 4;
 
+enum CampoConfig {
+  CFG_HORA,
+  CFG_MINUTO,
+  CFG_DIA,
+  CFG_MES,
+  CFG_ANO,
+  CFG_SALVAR
+};
+
+CampoConfig campoAtual = CFG_HORA;
+
+int cfgHora;
+int cfgMinuto;
+int cfgDia;
+int cfgMes;
+int cfgAno;
+
+unsigned long ultimoCliqueConfig = 0;
+const unsigned long TIMEOUT_CONFIG = 10000;
+const unsigned long TEMPO_ENTRAR_CONFIG = 2000;
+
 void setup() {
   Serial.begin(9600);
 
@@ -85,18 +106,15 @@ void loop() {
   String estadoStr = "";
   if (estado == NORMAL) estadoStr = "Normal";
   else estadoStr = "Config";
-  // Serial.println("Estado do relogio: " + estadoStr);
-  boolean botaoUp = digitalRead(pinBUp);
-  boolean botaoDown = digitalRead(pinBDown);
-  boolean condicaoEntraConfig = botaoUp == LOW || botaoDown == LOW;
+  Serial.println("Estado do relogio: " + estadoStr);
 
-  if(condicaoEntraConfig) {
-    Serial.println("Mudou de Estado: Normal -> Config");
-    estado = CONFIG;
+  if (estado == NORMAL) {
+    verificaEntradaConfig();
+    rotinaNormal();
   } 
-
-  if(estado == NORMAL) rotinaNormal();
-  else if(estado == CONFIG) rotinaConfig();
+  else if (estado == CONFIG) {
+    rotinaConfig();
+  }
 }
 
 void doTime(DateTime now) {
@@ -183,5 +201,48 @@ void rotinaNormal(){
 // Rotina do estado Config
 void rotinaConfig(){  
   Serial.println("Entrei na rotina do config");  
-  delay(100);
+  
+  display.clearDisplay();
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextSize(1);
+  display.setCursor(4, 4);
+  display.print("Modo CONFIG");
+  display.display();
+
+  // leitura dos botoes
+  bool upPressionado = digitalRead(pinBUp);
+  bool downPressionado = digitalRead(pinBDown);
+
+  // se tem clique, mantem no config
+  if (upPressionado || downPressionado) {
+    ultimoCliqueConfig = millis();
+  }
+
+  // timeout para sair do config
+  if (millis() - ultimoCliqueConfig > TIMEOUT_CONFIG) {
+    estado = NORMAL;
+    return;
+  }
+}
+
+void verificaEntradaConfig() {
+  static unsigned long inicioPressionado = 0;
+
+  bool upPressionado = digitalRead(pinBUp);
+  bool downPressionado = digitalRead(pinBDown);
+
+  if (upPressionado || downPressionado) {
+    if (inicioPressionado == 0) {
+      inicioPressionado = millis();
+    }
+
+    if (millis() - inicioPressionado >= TEMPO_ENTRAR_CONFIG) {      
+      Serial.println("Mudou de Estado: Normal -> Config");
+      estado = CONFIG;
+      //entrarConfig(); -> configuração dos valores base para configurar
+      inicioPressionado = 0;
+    }
+  } else {
+    inicioPressionado = 0;
+  }
 }
