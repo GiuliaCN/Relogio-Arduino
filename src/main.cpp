@@ -4,13 +4,11 @@
 #include <Adafruit_SSD1306.h>
 #include <DHT.h> 
 
-#define DHTPIN 7
+#define DHTPIN 5
 #define DHTTYPE DHT22
-
 DHT dht(DHTPIN,DHTTYPE);
 
-
-// OLED Display Configuration
+// OLED Display 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define OLED_RESET    -1
@@ -19,55 +17,80 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 // RTC Configuration
 RTC_DS3231 rtc;
 
+// logo
+#define ALIEN_WIDTH 16
+#define ALIEN_HEIGHT 16
+static const unsigned char PROGMEM alien_bmp[] = {
+  0b00001000, 0b00010000,
+  0b00000100, 0b00100000,
+  0b00001111, 0b11110000,
+  0b00011011, 0b11011000,
+  0b00111111, 0b11111100,
+  0b00101111, 0b11110100,
+  0b00101000, 0b00010100,
+  0b00000110, 0b01100000,
+  0b00000000, 0b00000000,
+  0b00000000, 0b00000000,
+  0b00000000, 0b00000000,
+  0b00000000, 0b00000000,
+  0b00000000, 0b00000000,
+  0b00000000, 0b00000000,
+  0b00000000, 0b00000000,
+  0b00000000, 0b00000000
+};
+
 typedef enum {
-  NORMAL, CONFIG
+NORMAL, CONFIG
 } Estado;
 
 Estado estado;
 
 char daysOfTheWeek[7][12] = {"Domingo", "Segunda", "Terca", "Quarta", "Quinta", "Sexta", "Sabado"};
 
-const int pinBUp = 13;
-const int pinBDown = 12;
+const int pinBUp = 3;
+const int pinBDown = 4;
 
 void setup() {
   Serial.begin(9600);
-  
-  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3D)) {
+
+  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     Serial.println(F("SSD1306 allocation failed"));
     Serial.flush();
     abort();
   }
-  
   if (!rtc.begin()) {
     Serial.println("Couldn't find RTC");
     Serial.flush();
     abort();
   }
   
+  rtc.adjust(DateTime(F(__DATE__), F(__TIME__))); // pega o horário do pc
+
+  dht.begin(); // inicia o DHT
+  delay(2000);
+
   // Limpa o buffer inicial da Adafruit (caso exiba o logo deles de início)
   display.clearDisplay();
   display.display();
 
-  pinMode(pinBUp, INPUT);
-  pinMode(pinBDown, INPUT);
-
+  pinMode(pinBUp, INPUT_PULLUP); //agora entra no modo config quando os dois botões estão pressionados/LOW
+  pinMode(pinBDown, INPUT_PULLUP);
   estado = NORMAL; // Inicia estado inicial como Normal
 }
+
+int segundoAnterior = -1;
 
 void loop() {
   // tirar essa parte depois
   String estadoStr = "";
   if (estado == NORMAL) estadoStr = "Normal";
   else estadoStr = "Config";
-  Serial.println("Estado do relogio: " + estadoStr);
-
+  // Serial.println("Estado do relogio: " + estadoStr);
   boolean botaoUp = digitalRead(pinBUp);
   boolean botaoDown = digitalRead(pinBDown);
+  boolean condicaoEntraConfig = botaoUp == LOW || botaoDown == LOW;
 
-  boolean condicaoEntraConfig = botaoUp == true || botaoDown == true;
-  if(condicaoEntraConfig) 
-  {
+  if(condicaoEntraConfig) {
     Serial.println("Mudou de Estado: Normal -> Config");
     estado = CONFIG;
   } 
@@ -96,36 +119,65 @@ void doTime(DateTime now) {
 
 // Rotina do estado normal
 void rotinaNormal(){
-  
-  // Atualizando a tela
-  display.clearDisplay(); // Limpa a tela anterior para não sobrepor texto
-  display.setTextSize(1);
-  display.setTextColor(SSD1306_WHITE);
-
-  // Escreve umidade no display
-  display.setCursor(2,2);  
-  display.print("Umidade: ");
-  display.print(dht.readHumidity(), 1);
-  Serial.print("Umidade: ");
-  Serial.println(dht.readHumidity(), 1);
-  
   DateTime now = rtc.now();
-  doTime(now);  
   
-  // Escreve hora no display
-  display.setCursor(2,20);
-  display.print("Hora: ");
-  display.print(now.hour(), DEC);
-  display.print(':');
-  if(now.minute() < 10) display.print('0');
-  display.print(now.minute(), DEC);
-  display.print(':');
-  if(now.second() < 10) display.print('0');
-  display.print(now.second(), DEC);
+  if(now.second() != segundoAnterior) {
+    segundoAnterior = now.second();
+    
+    // Atualizando a tela
+    display.clearDisplay(); // Limpa a tela anterior para não sobrepor texto
+    display.setTextSize(1);
+    display.setTextColor(SSD1306_WHITE);
+    
+    // Escreve umidade no display
+    float umidade = dht.readHumidity();
+    float temperatura = dht.readTemperature(); //aqui ja leu a temperatura
+    display.setCursor(2,48);  
+    display.print("Umid: ");
+    display.print(umidade, 1);
+    display.print(" %");
+    Serial.print("Umidade: ");
+    Serial.println(umidade, 1);
 
-  display.display(); 
-  
-  delay(1000);
+    // Escreve temperatura no display
+    display.setCursor(2,36);  
+    display.print("Temp: ");
+    display.print(temperatura, 1);
+    display.print(" C");
+    Serial.print("Temperatura: ");
+    Serial.println(temperatura, 1);
+    
+    doTime(now);  
+    
+    // Escreve data no display 
+    display.setCursor(2,0); 
+    display.print("Data: ");
+    if(now.day() < 10) display.print('0');
+    display.print(now.day(), DEC);
+    display.print('/');
+    if(now.month() < 10) display.print('0'); 
+    display.print(now.month(), DEC); 
+    display.print('/');  
+    display.print(now.year(), DEC);
+
+    // Escreve dia da semana no display 
+    display.setCursor(2,12); 
+    display.print(daysOfTheWeek[now.dayOfTheWeek()]);
+    
+    // Escreve hora no display
+    display.setCursor(2,24);
+    display.print("Hora: ");
+    display.print(now.hour(), DEC);
+    display.print(':');
+    if(now.minute() < 10) display.print('0');
+    display.print(now.minute(), DEC);
+    display.print(':');
+    if(now.second() < 10) display.print('0');
+    display.print(now.second(), DEC);
+    
+    display.drawBitmap(100, 50, alien_bmp, ALIEN_WIDTH, ALIEN_HEIGHT, SSD1306_WHITE); //desenha o logo
+    display.display(); 
+  }
 }
 
 // Rotina do estado Config
