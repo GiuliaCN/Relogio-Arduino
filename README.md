@@ -10,7 +10,7 @@ O relógio terá dois estados:
 
 - Configuracao: onde recebe inputs para configurar a hora.
 
-Ele inicia no Normal e passa para o Configuracao se os dois botões forem pressionados juntos e retorna ao Normal quando não realiza uma ação por algum tempo.
+Ele inicia no Normal e passa para o Configuracao se qualquer dos botões forem pressionados segurando por 2 segundos e retorna ao Normal quando não realiza uma ação por algum tempo (10 segundos).
 
 [![](https://mermaid.ink/img/pako:eNpNkMFugzAMhl8F_ccpIAiBsBx26a7dA2zsEDUpRWuSKk2qbYh3XwBtq-WD_8_6bcsTDk5pCFyDDPp5lIOXJr_R3mYp3h7eszx_yl6cN_K8sa1e8c7Z4zhELw_Sbc17cucEweBHBRF81ARGJ7hITIutRzhpo3uIVCrpP3r0dk6ei7Svzplfm3dxOEEc5fmaVLyo_4v_qNdWab9z0QaIilXrEIgJnxBNxwvadm35WLGSUl4TfEEwXrCaM940La2XnAm-161l0fGGQKsxOL_f3rR-a_4BtSBfoA?type=png)](https://mermaid.live/edit#pako:eNpNkMFugzAMhl8F_ccpIAiBsBx26a7dA2zsEDUpRWuSKk2qbYh3XwBtq-WD_8_6bcsTDk5pCFyDDPp5lIOXJr_R3mYp3h7eszx_yl6cN_K8sa1e8c7Z4zhELw_Sbc17cucEweBHBRF81ARGJ7hITIutRzhpo3uIVCrpP3r0dk6ei7Svzplfm3dxOEEc5fmaVLyo_4v_qNdWab9z0QaIilXrEIgJnxBNxwvadm35WLGSUl4TfEEwXrCaM940La2XnAm-161l0fGGQKsxOL_f3rR-a_4BtSBfoA)
 
@@ -18,7 +18,7 @@ Ele inicia no Normal e passa para o Configuracao se os dois botões forem pressi
 
 Fica se comunicando com os componentes (RTC e DHT22) e atualizando a tela.
 
-Passa para o estado Configuracao se os dois botões forem pressionados juntos.
+Passa para o estado Configuracao se qualquer dos botões forem pressionados segurando por 2 segundos.
 
 ![Display no Modo Normal](assets/visual-modo-normal.png)
 
@@ -28,7 +28,7 @@ Permite configurar o horário do RTC utilizando os botões.
 
 Inicia uma variável que verifica o timeout do usuário (tempo sem input do usuário).
 
-Se o timeout chega a um valor arbitrário, retorno o estado do relógio para Normal.
+Se o timeout chega a 10 segundos, retorno o estado do relógio para Normal.
 
 Campos configuráveis:
 ````
@@ -44,6 +44,8 @@ mes: 1..12
 ano: 2024..2035
 diaSemana: 0..6
 ````
+
+![Display no Modo Config](assets/visual-modo-config.png)
 
 ## Sobre a entrega do projeto
 Projeto Arduino

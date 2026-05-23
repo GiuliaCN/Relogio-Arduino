@@ -39,17 +39,20 @@ static const unsigned char PROGMEM alien_bmp[] = {
   0b00000000, 0b00000000
 };
 
+// Pinos dos botões
+const int pinEsq = 12;
+const int pinDir = 13;
+
+// Estados do relógio
 typedef enum {
 NORMAL, CONFIG
 } Estado;
+Estado estado; // global para controlar o estado atual do relógio
 
-Estado estado;
-
+// Dias da semana em Português
 char daysOfTheWeek[7][12] = {"Domingo", "Segunda", "Terca", "Quarta", "Quinta", "Sexta", "Sabado"};
 
-const int pinBUp = 3;
-const int pinBDown = 4;
-
+// Configurações para o modo CONFIG
 enum CampoConfig {
   CFG_HORA,
   CFG_MINUTO,
@@ -70,6 +73,8 @@ int cfgAno;
 unsigned long ultimoCliqueConfig = 0;
 const unsigned long TIMEOUT_CONFIG = 10000;
 const unsigned long TEMPO_ENTRAR_CONFIG = 2000;
+
+//-------------------------------
 
 void setup() {
   Serial.begin(9600);
@@ -94,20 +99,13 @@ void setup() {
   display.clearDisplay();
   display.display();
 
-  pinMode(pinBUp, INPUT_PULLUP); //agora entra no modo config quando os dois botões estão pressionados/LOW
-  pinMode(pinBDown, INPUT_PULLUP);
+  pinMode(pinEsq, INPUT);
+  pinMode(pinDir, INPUT);
+
   estado = NORMAL; // Inicia estado inicial como Normal
 }
 
-int segundoAnterior = -1;
-
 void loop() {
-  // tirar essa parte depois
-  String estadoStr = "";
-  if (estado == NORMAL) estadoStr = "Normal";
-  else estadoStr = "Config";
-  Serial.println("Estado do relogio: " + estadoStr);
-
   if (estado == NORMAL) {
     verificaEntradaConfig();
     rotinaNormal();
@@ -117,26 +115,8 @@ void loop() {
   }
 }
 
-void doTime(DateTime now) {
-  Serial.print("Current time: ");
-  Serial.print(now.year(), DEC);
-  Serial.print('/');
-  Serial.print(now.month(), DEC);
-  Serial.print('/');
-  Serial.print(now.day(), DEC);
-  Serial.print(" (");
-  Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);
-  Serial.print(") ");
-  Serial.print(now.hour(), DEC);
-  Serial.print(':');
-  Serial.print(now.minute(), DEC);
-  Serial.print(':');
-  Serial.print(now.second(), DEC);
-  Serial.println();
-}
-
-// Rotina do estado normal
 void rotinaNormal(){
+  static int segundoAnterior = -1;
   DateTime now = rtc.now();
   
   if(now.second() != segundoAnterior) {
@@ -200,23 +180,25 @@ void rotinaNormal(){
   }
 }
 
-// Rotina do estado Config
 void rotinaConfig(){  
-  Serial.println("Entrei na rotina do config");  
-  
-  display.clearDisplay();
-  display.setTextColor(SSD1306_WHITE);
-  display.setTextSize(1);
-  display.setCursor(4, 4);
-  display.print("Modo CONFIG");
-  display.display();
+  /** Variáveis para evitar múltiplas leituras do mesmo clique, 
+   * inicia true para evitar ação imediata ao entrar no config **/
+  static bool esqAnterior = true;
+  static bool dirAnterior = true;
 
   // leitura dos botoes
-  bool upPressionado = digitalRead(pinBUp);
-  bool downPressionado = digitalRead(pinBDown);
+  bool esqPressionado = digitalRead(pinEsq);
+  bool dirPressionado = digitalRead(pinDir);
 
-  // se tem clique, mantem no config
-  if (upPressionado || downPressionado) {
+  // se pressiona botão esquerdo incrementa o campo atual
+  if (esqPressionado && !esqAnterior) {
+    incrementarCampo();
+    ultimoCliqueConfig = millis();
+  }
+
+  // se pressiona botão direito passa para o próximo campo
+  if (dirPressionado && !dirAnterior) {
+    proximoCampo();
     ultimoCliqueConfig = millis();
   }
 
@@ -225,26 +207,156 @@ void rotinaConfig(){
     estado = NORMAL;
     return;
   }
+
+  esqAnterior = esqPressionado;
+  dirAnterior = dirPressionado;
+
+  desenharTelaConfig();
+  
+  Serial.print("Tempo até sair do config: ");
+  Serial.println(TIMEOUT_CONFIG - millis() + ultimoCliqueConfig);
 }
 
 void verificaEntradaConfig() {
   static unsigned long inicioPressionado = 0;
 
-  bool upPressionado = digitalRead(pinBUp);
-  bool downPressionado = digitalRead(pinBDown);
+  bool esqPressionado = digitalRead(pinEsq);
+  bool dirPressionado = digitalRead(pinDir);
 
-  if (upPressionado || downPressionado) {
+  if (esqPressionado || dirPressionado) {
     if (inicioPressionado == 0) {
       inicioPressionado = millis();
     }
 
-    if (millis() - inicioPressionado >= TEMPO_ENTRAR_CONFIG) {      
-      Serial.println("Mudou de Estado: Normal -> Config");
-      estado = CONFIG;
-      //entrarConfig(); -> configuração dos valores base para configurar
+    if (millis() - inicioPressionado >= TEMPO_ENTRAR_CONFIG) {
+      entrarConfig();
       inicioPressionado = 0;
     }
   } else {
     inicioPressionado = 0;
   }
+}
+
+// Inicializa as variáveis de configuração com o horário atual do RTC e entra no modo CONFIG
+void entrarConfig() {
+  DateTime now = rtc.now();
+
+  cfgHora = now.hour();
+  cfgMinuto = now.minute();
+  cfgDia = now.day();
+  cfgMes = now.month();
+  cfgAno = now.year();
+
+  campoAtual = CFG_HORA;
+  ultimoCliqueConfig = millis();
+  estado = CONFIG;
+}
+
+// -------------------------------
+// Funções CONFIG
+void proximoCampo() {
+  campoAtual = (CampoConfig)(campoAtual + 1);
+
+  if (campoAtual > CFG_SALVAR) {
+    campoAtual = CFG_HORA;
+  }
+}
+
+void incrementarCampo() {
+  switch (campoAtual) {
+    case CFG_HORA:
+      cfgHora = (cfgHora + 1) % 24;
+      break;
+
+    case CFG_MINUTO:
+      cfgMinuto = (cfgMinuto + 1) % 60;
+      break;
+
+    case CFG_DIA:
+      cfgDia++;
+      if (cfgDia > 31) cfgDia = 1;
+      break;
+
+    case CFG_MES:
+      cfgMes++;
+      if (cfgMes > 12) cfgMes = 1;
+      break;
+
+    case CFG_ANO:
+      cfgAno++;
+      if (cfgAno > 2035) cfgAno = 2024;
+      break;
+
+    case CFG_SALVAR:
+      salvarConfig();
+      estado = NORMAL;
+      break;
+  }
+}
+
+void salvarConfig() {
+  rtc.adjust(DateTime(cfgAno, cfgMes, cfgDia, cfgHora, cfgMinuto, 0));
+}
+
+void desenharTelaConfig() {
+  display.clearDisplay();
+  display.setTextColor(SSD1306_WHITE);
+
+  display.drawRect(0, 0, 128, 64, SSD1306_WHITE);
+
+  display.setTextSize(1);
+  display.setCursor(4, 4);
+  display.print("CONFIGURAR");
+
+  display.setTextSize(2);
+  display.setCursor(16, 22);
+
+  if (cfgHora < 10) display.print('0');
+  display.print(cfgHora);
+  display.print(':');
+
+  if (cfgMinuto < 10) display.print('0');
+  display.print(cfgMinuto);
+
+  display.setTextSize(1);
+  display.setCursor(20, 42);
+
+  if (cfgDia < 10) display.print('0');
+  display.print(cfgDia);
+  display.print('/');
+
+  if (cfgMes < 10) display.print('0');
+  display.print(cfgMes);
+  display.print('/');
+
+  display.print(cfgAno);
+
+  // Indicador do campo
+  display.setCursor(4, 54);
+
+  switch (campoAtual) {
+    case CFG_HORA:
+      display.print("Editando: hora");
+      break;
+    case CFG_MINUTO:
+      display.print("Editando: minuto");
+      break;
+    case CFG_DIA:
+      display.print("Editando: dia");
+      break;
+    case CFG_MES:
+      display.print("Editando: mes");
+      break;
+    case CFG_ANO:
+      display.print("Editando: ano");
+      break;
+    case CFG_SALVAR:
+      display.print("UP para salvar");
+      break;
+  }
+  
+  // Ícone
+  display.drawBitmap(108, 3, alien_bmp, ALIEN_WIDTH, ALIEN_HEIGHT, SSD1306_WHITE);
+
+  display.display();
 }
