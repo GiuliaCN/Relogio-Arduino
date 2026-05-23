@@ -88,7 +88,7 @@ O sistema de configuração foi projetado para funcionar utilizando apenas dois 
 
 Foi utilizado um modelo baseado em máquina de estados para simplificar a navegação entre os modos NORMAL e CONFIG.
 
-## Melhorias futuras
+## Possíveis melhorias futuras
 
 - Ajuste individual de segundos
 - Persistência adicional de configurações
