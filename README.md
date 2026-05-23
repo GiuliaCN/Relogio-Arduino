@@ -1,5 +1,102 @@
-# Relogio-Arduino
+# Relógio Inteligente com OLED e RTC usando Arduino
+
+Projeto de relógio digital com display OLED 128x64, RTC DS3231 e sensor DHT22, desenvolvido para exibição de hora, data, temperatura e umidade, incluindo interface de configuração utilizando apenas dois botões.
+
 Projeto em equipe realizado em 2026.1 para disciplina de Projetos de Hardware e Software - USF.
+
+![Relógio](assets/modo-config.gif)
+
+## Features
+
+- Display OLED 128x64 monocromático
+- Relógio em tempo real utilizando RTC DS3231
+- Exibição de:
+  - Hora
+  - Data
+  - Dia da semana
+  - Temperatura
+  - Umidade
+- Interface gráfica otimizada para OLED
+- Sistema de estados (Normal / Configuração)
+- Configuração de data e hora utilizando apenas dois botões
+- Timeout automático no modo configuração
+- Ícone bitmap customizado
+
+## Arquitetura
+
+O sistema foi dividido em dois estados principais:
+
+- NORMAL
+  - Responsável pela renderização da interface principal
+  - Atualização periódica do relógio e sensores
+
+- CONFIG
+  - Responsável pela configuração da data e hora
+  - Navegação por campos utilizando dois botões
+
+### Diagrama de estados
+
+[![](https://mermaid.ink/img/pako:eNp1kdFKwzAUhl8lnEtpS5rars2FMCbKwG3gvJr1IraxKzZJOUuHOvo0PoovZtZtiuACCfnP-f5zQs4OClNK4LCxwsrrWlQolL9luSZuPV48Ed-_IvPF_Wx8l-tD9KCGxGQxv5neEk6WsupQIHk29uvTnMhj-g85bqzck4VQrTmPTXWBUkltHboVjcF_ah4fwslDraTp7HlgKZqtQPCgwroEbrGTHiiJSuwl7PbOHOzadcyBu2sp8DWHXPfO0wq9MkadbGi6ag38RTQbp7q2_P24nyhKXUqcmE5b4GGSDkWA7-ANeMRoQKOY0jRxR5jFiQfvjmJhkLGMMkrjMGNROOo9-Bj60iChcRxduh2zURoxD2RZW4Ozw-yGEfbfcxuG0A?type=png)](https://mermaid.live/edit#pako:eNp1kdFKwzAUhl8lnEtpS5rars2FMCbKwG3gvJr1IraxKzZJOUuHOvo0PoovZtZtiuACCfnP-f5zQs4OClNK4LCxwsrrWlQolL9luSZuPV48Ed-_IvPF_Wx8l-tD9KCGxGQxv5neEk6WsupQIHk29uvTnMhj-g85bqzck4VQrTmPTXWBUkltHboVjcF_ah4fwslDraTp7HlgKZqtQPCgwroEbrGTHiiJSuwl7PbOHOzadcyBu2sp8DWHXPfO0wq9MkadbGi6ag38RTQbp7q2_P24nyhKXUqcmE5b4GGSDkWA7-ANeMRoQKOY0jRxR5jFiQfvjmJhkLGMMkrjMGNROOo9-Bj60iChcRxduh2zURoxD2RZW4Ozw-yGEfbfcxuG0A)
+
+### Fluxo dos botões
+
+[![](https://mermaid.ink/img/pako:eNpFUs1y0zAQfpWdPbsZ_9Rp4wNM46RpGJJCwwnbB2EriQdbG9ZyabHzIlx74AF4hLwYsjopB2m0q-9Pmu0wp0JihNuKfuZ7wRq-zFKVqptkSvr0QnBg2TQlKVFQBhcX72DaraggELoV1XGATod2v75_WN187CFONnLXsoADMfhNlqrY0mbJXGkWDLKG-H59u1xk_8mvjR7m3WejCt-s9XurPreAefOjlVxQD7fJUuUsa6m0gEdREWdn0KxkWWqDWSSf-PT3qawJclEfyDotbIy77vS70m83g8edJW_KuodlshHVowmZk9qWwzNOf0yS7Axam6KHD0lMSpeqFZyhgzsuC4w0t9LBWnIthhK7VAGkqPcmaoqRORaCv6eYqqPhHIT6SlSfaUztbo_RVlSNqdpDIbSclWLHon7rslSF5JhapTHyxpdWBKMOnzAKfHfkBqHrXo_N5k3CsYPPBuV7o4k_cX3XDb2JH3hXRwd_WV93NHbDMLg0K_SvrgPfQVmYz-PV6zzYsTj-A9c6tSA?type=png)](https://mermaid.live/edit#pako:eNpFUs1y0zAQfpWdPbsZ_9Rp4wNM46RpGJJCwwnbB2EriQdbG9ZyabHzIlx74AF4hLwYsjopB2m0q-9Pmu0wp0JihNuKfuZ7wRq-zFKVqptkSvr0QnBg2TQlKVFQBhcX72DaraggELoV1XGATod2v75_WN187CFONnLXsoADMfhNlqrY0mbJXGkWDLKG-H59u1xk_8mvjR7m3WejCt-s9XurPreAefOjlVxQD7fJUuUsa6m0gEdREWdn0KxkWWqDWSSf-PT3qawJclEfyDotbIy77vS70m83g8edJW_KuodlshHVowmZk9qWwzNOf0yS7Axam6KHD0lMSpeqFZyhgzsuC4w0t9LBWnIthhK7VAGkqPcmaoqRORaCv6eYqqPhHIT6SlSfaUztbo_RVlSNqdpDIbSclWLHon7rslSF5JhapTHyxpdWBKMOnzAKfHfkBqHrXo_N5k3CsYPPBuV7o4k_cX3XDb2JH3hXRwd_WV93NHbDMLg0K_SvrgPfQVmYz-PV6zzYsTj-A9c6tSA)
+
+## Estrutura do código
+
+| Função | Responsabilidade |
+|---|---|
+| `rotinaNormal()` | Interface principal |
+| `rotinaConfig()` | Controle do modo configuração |
+| `verificaEntradaConfig()` | Detecta entrada no modo config |
+| `incrementarCampo()` | Atualiza o valor do campo atual |
+| `proximoCampo()` | Navega entre campos |
+| `salvarConfig()` | Atualiza o RTC |
+| `desenharTelaConfig()` | Renderiza a tela de configuração |
+
+## Hardware
+
+### Componentes utilizados
+
+| Componente | Função |
+|---|---|
+| Arduino Uno/Nano | Controle principal |
+| OLED SSD1306 128x64 | Interface gráfica |
+| RTC DS3231 | Relógio em tempo real |
+| DHT22 | Sensor de temperatura e umidade |
+| 2 Push Buttons | Interface de configuração |
+
+### Diagram de Hardware
+
+[![](https://mermaid.ink/img/pako:eNptkE9rwzAMxb-K0dkNmfPHqQ-DtSns0DEoPQ1fTO01Zo2VuTZsC_nuczPGCAx00Puhp4c0wgm1AQFnr4aO7A_SSffgdbQOyWp1T573u3ZJDsftErSPR8aWaINB4e76_g9trQea4qwGEXw0FHrje3WTMEpHiITQmd5IEKnVyr9JkG5KnkG5F8T-1-YxnjsQr-pyTSoOWgXTWpUO-RsxThu_xegCiPW8AcQIHyCqhmesbup8fVfmjPGCwieIkmdlwUteVTUrbjVR-Joj86zhFQWjbUD_9POy-XPTN1ryZIk?type=png)](https://mermaid.live/edit#pako:eNptkE9rwzAMxb-K0dkNmfPHqQ-DtSns0DEoPQ1fTO01Zo2VuTZsC_nuczPGCAx00Puhp4c0wgm1AQFnr4aO7A_SSffgdbQOyWp1T573u3ZJDsftErSPR8aWaINB4e76_g9trQea4qwGEXw0FHrje3WTMEpHiITQmd5IEKnVyr9JkG5KnkG5F8T-1-YxnjsQr-pyTSoOWgXTWpUO-RsxThu_xegCiPW8AcQIHyCqhmesbup8fVfmjPGCwieIkmdlwUteVTUrbjVR-Joj86zhFQWjbUD_9POy-XPTN1ryZIk)
+
+### Esquema Eletrônico
+
+![Esquema Eletronico](assets/esquema-eletronico-v1.png)
+
+## Bibliotecas utilizadas
+
+- RTClib
+- Adafruit_GFX
+- Adafruit_SSD1306
+- dht
+- Wire
+
+## Decisões de implementação
+
+O sistema de configuração foi projetado para funcionar utilizando apenas dois botões, reduzindo a complexidade do hardware e mantendo acessibilidade.
+
+Foi utilizado um modelo baseado em máquina de estados para simplificar a navegação entre os modos NORMAL e CONFIG.
+
+## Melhorias futuras
+
+- Ajuste individual de segundos
+- Persistência adicional de configurações
+- Alarmes
+- Modo sleep para economia de energia
+- Animações no display
+- Indicador de tendência de temperatura/umidade
+- Buzzer para feedback dos botões
 
 ## Funcionamento
 
@@ -11,8 +108,6 @@ O relógio terá dois estados:
 - Configuracao: onde recebe inputs para configurar a hora.
 
 Ele inicia no Normal e passa para o Configuracao se qualquer dos botões forem pressionados segurando por 2 segundos e retorna ao Normal quando não realiza uma ação por algum tempo (10 segundos).
-
-[![](https://mermaid.ink/img/pako:eNpNkMFugzAMhl8F_ccpIAiBsBx26a7dA2zsEDUpRWuSKk2qbYh3XwBtq-WD_8_6bcsTDk5pCFyDDPp5lIOXJr_R3mYp3h7eszx_yl6cN_K8sa1e8c7Z4zhELw_Sbc17cucEweBHBRF81ARGJ7hITIutRzhpo3uIVCrpP3r0dk6ei7Svzplfm3dxOEEc5fmaVLyo_4v_qNdWab9z0QaIilXrEIgJnxBNxwvadm35WLGSUl4TfEEwXrCaM940La2XnAm-161l0fGGQKsxOL_f3rR-a_4BtSBfoA?type=png)](https://mermaid.live/edit#pako:eNpNkMFugzAMhl8F_ccpIAiBsBx26a7dA2zsEDUpRWuSKk2qbYh3XwBtq-WD_8_6bcsTDk5pCFyDDPp5lIOXJr_R3mYp3h7eszx_yl6cN_K8sa1e8c7Z4zhELw_Sbc17cucEweBHBRF81ARGJ7hITIutRzhpo3uIVCrpP3r0dk6ei7Svzplfm3dxOEEc5fmaVLyo_4v_qNdWab9z0QaIilXrEIgJnxBNxwvadm35WLGSUl4TfEEwXrCaM940La2XnAm-161l0fGGQKsxOL_f3rR-a_4BtSBfoA)
 
 #### Estado Normal
 
@@ -46,70 +141,3 @@ diaSemana: 0..6
 ````
 
 ![Display no Modo Config](assets/visual-modo-config.png) 
-
-## Sobre a entrega do projeto
-Projeto Arduino
-Interface básica de usuário
-período: de 30/4 a 28/5
-
-### Apresentação
-O objetivo do Projeto Arduino é conhecer a plataforma de prototipagem visando sua
-aplicação em projetos de inovação tecnológica.
-Será montada uma interface de usuário utilizando um relógio de tempo real e um sensor de
-temperatura. Essa interface pode servir como base para o desenvolvimento de projetos para
-IoT.
-Circuito
-O circuito será montado utilizando um kit de desenvolvimento Arduino Uno e os módulos RTC
-DS3231, display SSD1306 e o sensor de temperatura e humidade DTH111. Deverá incorporar
-também botões que permitam o ajuste da hora, sem a necessidade de estar conectado ao
-notebook.
-
-### Material necessário:
-1 kit Arduino Uno
-1 relógio de tempo real RTC DS3231
-1 display OLED SSD1306 0.96” (128 X 64 pixels)
-1 sensor de temperatura e humidade DHT11 ou DHT22
-1 protoboard 400 pinos
-20 jumpers macho-macho de 20 cm
-2 push-button (botões de pressionar)
-
-### Requisitos
-
-**Formato do display**
-O display deverá fornecer as seguintes informações:
-• Hora – no formato 24h (hh:mm:ss)
-• Dia da semana
-• Data – no formato dd/mm/aaaa
-• Temperatura em °C e humidade em %
-• O logo da equipe
-
-**Botões de ajuste**
-O projeto deve conter dois botões (push button) para fazer o ajuste manual do relógio,
-possibilitando o uso sem o notebook.
-
-### Bibliotecas utilizadas
-Adafruit_GFX.h
-Biblioteca para símbolos e gráficos.
-Adafruit_SSD1306.h
-Biblioteca para utilizar o display SSD1306
-https://blog.eletrogate.com/guia-completo-do-display-oled-parte-1-o-que-e-como-funciona-2/
-https://blog.eletrogate.com/guia-completo-do-display-oled-parte-2-como-programar-3/
-RTClib.h
-Biblioteca para utilizar o RTC DS3231
-https://portal.vidadesilicio.com.br/real-time-clock-rtc-ds3231/
-Wire.h
-Biblioteca utilizada para inicializar a comunicação I2C
-https://capsistema.com.br/index.php/2020/11/27/como-usar-i2c-no-arduino-comunicacao-entre-duas-placas-arduino/
-DHT sensor library de Adafruit para o DHT22 - https://docs.arduino.cc/libraries/dht-sensor-library/
-### Referências
-Livro sobre programação do Arduino
-McRoberts, Michael; Arduino básico; [trad. Rafael Zanolli]. São Paulo: Novatec Editora, 2011.
-Programação do arduino
-https://www.electrofun.pt/blog/curso-arduino-0-introducao/
-TinkerCad
-https://www.tinkercad.com/
-Vídeo sobre TinkerCad
-https://youtu.be/j7ePCEKYKyQ
-Simulador Arduino
-https://wokwi.com/
-
