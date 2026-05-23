@@ -45,7 +45,7 @@ ano: 2024..2035
 diaSemana: 0..6
 ````
 
-![Display no Modo Config](assets/visual-modo-config.png)
+![Display no Modo Config](assets/visual-modo-config.png) 
 
 ## Sobre a entrega do projeto
 Projeto Arduino
